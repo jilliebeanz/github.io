@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jill — Learning Systems & AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0f0f0e;
+      --paper: #f5f2ed;
+      --accent: #1a4a3a;
+      --accent-light: #2d7a5f;
+      --gold: #b5863a;
+      --muted: #6b6760;
+      --rule: #d4cfc8;
+      --rose: #c4748a;
+      --font-display: 'Cormorant Garamond', serif;
+      --font-body: 'Instrument Sans', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* NOISE TEXTURE OVERLAY */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 4rem;
+      background: rgba(245, 242, 237, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding-top: 5rem;
+    }
+
+    .hero-left {
+      padding: 8rem 4rem 6rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-right: 1px solid var(--rule);
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent-light);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.2s;
+    }
+
+    .hero-name {
+      font-family: var(--font-display);
+      font-size: clamp(4rem, 8vw, 7rem);
+      font-weight: 300;
+      line-height: 0.95;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.4s;
+    }
+
+    .hero-name em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-tagline {
+      margin-top: 2rem;
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 36ch;
+      line-height: 1.7;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.6s;
+    }
+
+    .hero-cta {
+      margin-top: 3rem;
+      display: flex;
+      gap: 1rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards 0.8s;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover { background: var(--accent-light); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--ink);
+    }
+
+    .btn-outline:hover { background: var(--ink); color: var(--paper); }
+
+    .hero-right {
+      padding: 8rem 4rem 6rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3rem;
+    }
+
+    .hero-stat {
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    .hero-stat:nth-child(1) { animation-delay: 0.5s; }
+    .hero-stat:nth-child(2) { animation-delay: 0.7s; }
+    .hero-stat:nth-child(3) { animation-delay: 0.9s; }
+
+    .stat-number {
+      font-family: var(--font-display);
+      font-size: 3.5rem;
+      font-weight: 300;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    .stat-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      max-width: 30ch;
+    }
+
+    /* SECTION BASE */
+    section {
+      padding: 7rem 4rem;
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 3rem;
+    }
+
+    .section-title em { font-style: italic; color: var(--accent); }
+
+    hr.rule {
+      border: none;
+      border-top: 1px solid var(--rule);
+      margin: 0;
+    }
+
+    /* ABOUT */
+    .about {
+      background: var(--ink);
+      color: var(--paper);
+    }
+
+    .about .section-title { color: var(--paper); }
+    .about .section-title em { color: #7ec4a8; }
+    .about .section-label { color: #c4748a; }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .about-text p {
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: #c8c4bc;
+      margin-bottom: 1.5rem;
+    }
+
+    .about-text p strong { color: var(--paper); font-weight: 500; }
+
+    .about-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+
+    .pill {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.4rem 0.9rem;
+      border: 1px solid #3a3a38;
+      color: #9a9690;
+      border-radius: 2px;
+    }
+
+    .about-right {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .about-card {
+      border: 1px solid #2a2a28;
+      padding: 1.75rem;
+      background: #161614;
+    }
+
+    .about-card-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #7ec4a8;
+      margin-bottom: 0.75rem;
+    }
+
+    .about-card-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: var(--paper);
+      margin-bottom: 0.5rem;
+    }
+
+    .about-card p {
+      font-size: 0.9rem;
+      color: #8a8680;
+      line-height: 1.6;
+    }
+
+    /* WORK */
+    .work { background: var(--paper); }
+
+    .work-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+    }
+
+    .work-card {
+      background: var(--paper);
+      padding: 3rem;
+      transition: background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .work-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 0;
+      background: var(--accent);
+      transition: height 0.3s ease;
+    }
+
+    .work-card:hover::before { height: 100%; }
+    .work-card:hover { background: #f0ece5; }
+
+    .work-card-number {
+      font-family: var(--font-display);
+      font-size: 4rem;
+      font-weight: 300;
+      color: var(--rule);
+      line-height: 1;
+      margin-bottom: 1.5rem;
+      transition: color 0.3s;
+    }
+
+    .work-card:hover .work-card-number { color: var(--accent); opacity: 0.3; }
+
+    .work-card-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+    }
+
+    .work-card-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 400;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .work-card p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .work-card-tech {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 1.5rem;
+    }
+
+    .tech-tag {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      background: var(--rule);
+      color: var(--muted);
+      border-radius: 2px;
+    }
+
+    /* ARCHITECTURE SECTION */
+    .architecture {
+      background: #0f1a16;
+      color: var(--paper);
+      padding: 7rem 4rem;
+    }
+
+    .architecture .section-label { color: #7ec4a8; }
+    .architecture .section-title { color: var(--paper); }
+    .architecture .section-title em { color: #7ec4a8; }
+
+    .arch-diagram {
+      background: #0a1410;
+      border: 1px solid #1e3028;
+      padding: 3rem;
+      margin-top: 3rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: #5a8a72;
+      line-height: 2;
+      overflow-x: auto;
+    }
+
+    .arch-layer {
+      margin-bottom: 2rem;
+    }
+
+    .arch-layer-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #3a6050;
+      border-top: 1px solid #1e3028;
+      padding-top: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .arch-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+
+    .arch-box {
+      border: 1px solid #2a5040;
+      padding: 0.6rem 1rem;
+      color: #8ec4a8;
+      white-space: nowrap;
+      font-size: 0.7rem;
+      background: #0d1f18;
+    }
+
+    .arch-box.highlight {
+      border-color: #5aaa85;
+      color: #aedcc8;
+      background: #112318;
+    }
+
+    .arch-box.validator-green { border-color: #4a9a6a; color: #7ec49a; }
+    .arch-box.validator-blue { border-color: #4a6a9a; color: #7e9ac4; }
+    .arch-box.validator-purple { border-color: #7a4a9a; color: #aa7ec4; }
+
+    .arch-arrow { color: #2a5040; }
+
+    .arch-services {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .arch-service {
+      border: 1px solid #2a4a38;
+      padding: 0.75rem 1.25rem;
+      color: #5a8a72;
+      font-size: 0.65rem;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    /* EXPERIENCE */
+    .experience { background: var(--paper); }
+
+    .exp-list { display: flex; flex-direction: column; }
+
+    .exp-item {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 3rem;
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--rule);
+      align-items: start;
+    }
+
+    .exp-meta {}
+
+    .exp-dates {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .exp-company {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--accent);
+      font-weight: 400;
+    }
+
+    .exp-content {}
+
+    .exp-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 400;
+      margin-bottom: 0.75rem;
+    }
+
+    .exp-desc {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* CONTACT */
+    .contact {
+      background: var(--accent);
+      color: white;
+      text-align: center;
+      padding: 8rem 4rem;
+    }
+
+    .contact .section-label { color: #7ec4a8; }
+
+    .contact-title {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 6vw, 5.5rem);
+      font-weight: 300;
+      line-height: 1.1;
+      margin-bottom: 2rem;
+      color: white;
+    }
+
+    .contact-title em { font-style: italic; color: #aedcc8; }
+
+    .contact p {
+      font-size: 1rem;
+      color: #aedcc8;
+      max-width: 45ch;
+      margin: 0 auto 3rem;
+      line-height: 1.7;
+    }
+
+    .contact-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .contact .btn-primary {
+      background: white;
+      color: var(--accent);
+    }
+
+    .contact .btn-primary:hover { background: #aedcc8; }
+
+    .contact .btn-outline {
+      border-color: rgba(255,255,255,0.4);
+      color: white;
+    }
+
+    .contact .btn-outline:hover { background: rgba(255,255,255,0.1); }
+
+    /* FOOTER */
+    footer {
+      background: var(--ink);
+      color: var(--muted);
+      padding: 2rem 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      nav { padding: 1rem 2rem; }
+      .nav-links { gap: 1.5rem; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-left { padding: 7rem 2rem 3rem; border-right: none; border-bottom: 1px solid var(--rule); }
+      .hero-right { padding: 3rem 2rem 5rem; flex-direction: row; flex-wrap: wrap; }
+      section { padding: 5rem 2rem; }
+      .about-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .work-grid { grid-template-columns: 1fr; }
+      .exp-item { grid-template-columns: 1fr; gap: 0.5rem; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="nav-logo">Jill</a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#work">Work</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="hero-left">
+      <p class="hero-eyebrow">Digital Learning Leader &amp; AI Builder</p>
+      <h1 class="hero-name">Jill<br /><em>Builds</em><br />Systems.</h1>
+      <p class="hero-tagline">15 years at the intersection of learning strategy, AI architecture, and pharma. I don't just design training — I build the infrastructure that makes it scale. I take the work seriously. Myself, slightly less so.</p>
+      <div class="hero-cta">
+        <a href="#work" class="btn btn-primary">See My Work</a>
+        <a href="#contact" class="btn btn-outline">Get In Touch</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-stat">
+        <div class="stat-number">15+</div>
+        <div class="stat-label">Years Experience</div>
+        <div class="stat-desc">Building learning infrastructure across pharma and biotech</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-number">1</div>
+        <div class="stat-label">AI System Built from Scratch</div>
+        <div class="stat-desc">Conceived, championed, and delivered a full-stack AI learning coach in a regulated environment</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-number">E2E</div>
+        <div class="stat-label">CRM Implementation &amp; Training</div>
+        <div class="stat-desc">End-to-end Veeva CRM expertise spanning implementation, configuration, and field training across multiple pharma organizations</div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule" />
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="section-label">About</div>
+    <div class="about-grid">
+      <div class="about-text">
+        <h2 class="section-title">Learning leader.<br /><em>AI builder.</em></h2>
+        <p>I'm a Principal Trainer at Genentech, where I set the systems and tools learning strategy for all of Commercial, Medical, and Government Affairs. I own the direction. I build the infrastructure. And when I see a gap, I close it — usually before anyone else notices it's there.</p>
+        <p>Six months ago I conceived, championed, and drove the build of an AI-powered learning coach for our field teams — leading a cross-functional team of systems architects, UX designers, data scientists, and business systems analysts from whiteboard to production. <strong>Without my initiative, it wouldn't exist.</strong></p>
+        <p>I use Claude daily — for prompting strategy, structuring and chunking complex content into modular retrievable components, and stress-testing design decisions. AI isn't a topic I teach. It's the infrastructure through which I teach. Off the clock, I'm watching anime with Luna and Luffy (yes, both cat names are anime references — yes, this was intentional).</p>
+        <div class="about-pills">
+          <span class="pill">RAG Architecture</span>
+          <span class="pill">Multi-Agent Systems</span>
+          <span class="pill">Instructional Design</span>
+          <span class="pill">Python</span>
+          <span class="pill">GitLab</span>
+          <span class="pill">Streamlit</span>
+          <span class="pill">Veeva CRM</span>
+          <span class="pill">LMS Admin</span>
+          <span class="pill">Pharma Compliance</span>
+          <span class="pill">Google Apps Script</span>
+        </div>
+      </div>
+      <div class="about-right">
+        <div class="about-card">
+          <div class="about-card-label">Current Role</div>
+          <div class="about-card-title">Principal Trainer, Digital Education &amp; Enablement</div>
+          <p>Genentech · South San Francisco, CA · Jan 2023 – Present</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-label">Strategic Scope</div>
+          <div class="about-card-title">CMG Learning Strategy Owner</div>
+          <p>Sets systems and tools learning direction for all of Commercial, Medical, and Government Affairs. Also serves as interim Learning Business Partner for Marketing.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-label">Education</div>
+          <div class="about-card-title">BS, Business Administration</div>
+          <p>San Francisco State University · Emphasis in Computer Information Systems · 2002</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORK -->
+  <section class="work" id="work">
+    <div class="section-label">Featured Work</div>
+    <h2 class="section-title">Projects that<br /><em>changed the system.</em></h2>
+    <div class="work-grid">
+      <div class="work-card reveal">
+        <div class="work-card-number">01</div>
+        <div class="work-card-tag">AI · Full-Stack · Product Ownership</div>
+        <h3 class="work-card-title">AI-Powered Learning Coach</h3>
+        <p>Conceived and drove the build of a full-stack AI learning coach for Genentech field teams. Architected the RAG pipeline back-end and user-facing front-end with multi-agent validation and pharmaceutical compliance guardrails embedded at every layer.</p>
+        <div class="work-card-tech">
+          <span class="tech-tag">RAG Pipeline</span>
+          <span class="tech-tag">Vector Search</span>
+          <span class="tech-tag">Multi-Agent</span>
+          <span class="tech-tag">Claude API</span>
+          <span class="tech-tag">Streamlit</span>
+          <span class="tech-tag">Python</span>
+        </div>
+      </div>
+      <div class="work-card reveal">
+        <div class="work-card-number">02</div>
+        <div class="work-card-tag">Train-the-Trainer · Scale · Systems</div>
+        <h3 class="work-card-title">Tech Champ Toolkit</h3>
+        <p>As sole CRM trainer for 1,200 field employees, transformed an existing network of Technology Champions from update-sharers into trained facilitators. Built the complete training infrastructure: facilitator guides, job aids, calibration cadences, and success metrics.</p>
+        <div class="work-card-tech">
+          <span class="tech-tag">Instructional Design</span>
+          <span class="tech-tag">Veeva CRM</span>
+          <span class="tech-tag">Analytics</span>
+          <span class="tech-tag">Facilitation</span>
+        </div>
+      </div>
+      <div class="work-card reveal">
+        <div class="work-card-number">03</div>
+        <div class="work-card-tag">Strategy · CMG · Learning Architecture</div>
+        <h3 class="work-card-title">CMG Learning Strategy</h3>
+        <p>Sets the systems and tools learning strategy for all of Genentech Commercial, Medical, and Government Affairs — establishing direction for how field teams develop capability across digital platforms and customer engagement tools at enterprise scale.</p>
+        <div class="work-card-tech">
+          <span class="tech-tag">Learning Strategy</span>
+          <span class="tech-tag">Digital Platforms</span>
+          <span class="tech-tag">Stakeholder Mgmt</span>
+        </div>
+      </div>
+      <div class="work-card reveal">
+        <div class="work-card-number">04</div>
+        <div class="work-card-tag">AI Eval · Quality · Human-AI Collaboration</div>
+        <h3 class="work-card-title">AI Eval Framework</h3>
+        <p>Developed an AI Eval framework for Human-AI collaborative testing and validation, enabling systematic stress-testing of the learning coach at scale. Replaced manual spot checks with automated quality assurance that runs continuously without human review of every interaction.</p>
+        <div class="work-card-tech">
+          <span class="tech-tag">AI Evaluation</span>
+          <span class="tech-tag">Quality Assurance</span>
+          <span class="tech-tag">Automation</span>
+          <span class="tech-tag">Compliance</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="architecture" id="architecture">
+    <div class="section-label">System Design</div>
+    <h2 class="section-title">Multi-Agent <em>Architecture</em></h2>
+    <p style="color: #8aaa98; max-width: 55ch; line-height: 1.7; margin-bottom: 1rem;">The AI learning coach uses a multi-agent pipeline with a parallel validation layer ensuring every response is grounded, compliant, and on-tone before reaching a learner.</p>
+    <div class="arch-diagram">
+
+      <div class="arch-layer">
+        <div class="arch-layer-label">Frontend Layer</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">Streamlit Chat UI — Field-facing Q&amp;A interface</div>
+        </div>
+      </div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-label">Orchestration Layer · Python Backend</div>
+        <div class="arch-row">
+          <div class="arch-box highlight">🎯 Orchestrator Agent — Receives query · Routes through pipeline · Returns final answer</div>
+        </div>
+        <div class="arch-row">
+          <span class="arch-arrow">↓</span>
+        </div>
+        <div class="arch-row">
+          <div class="arch-box">🔍 Semantic Search Agent — Embeds query · Retrieves top KB chunks · Identifies domain</div>
+        </div>
+        <div class="arch-row">
+          <span class="arch-arrow">↓</span>
+        </div>
+        <div class="arch-row">
+          <div class="arch-box">💬 Responder Agent — Drafts answer using ONLY retrieved KB chunks</div>
+        </div>
+        <div class="arch-row">
+          <span class="arch-arrow">↓  Parallel Validation</span>
+        </div>
+        <div class="arch-row" style="gap: 1.5rem;">
+          <div class="arch-box validator-green">✅ Grounding Validator (the skeptic) — Only KB content? · All names correct? · No labels invented?</div>
+          <div class="arch-box validator-blue">🛡️ Compliance Validator (the rule-keeper) — No off-label claims? · Approved language only?</div>
+          <div class="arch-box validator-purple">🎵 Tone Validator (the empath) — Coaching voice? · Not robotic/clinical? · Field-appropriate?</div>
+        </div>
+        <div class="arch-row" style="margin-top: 1rem;">
+          <div class="arch-box" style="border-color: #aa4a4a; color: #c47e7e; background: #1a0e0e;">⚠️ Refinement Loop — Feedback sent to Responder · Max 2 retries · Fallback message</div>
+          <span class="arch-arrow" style="margin: 0 1rem;">or</span>
+          <div class="arch-box validator-green">✅ Approved Response — Passed through Orchestrator · Delivered with confidence score</div>
+        </div>
+      </div>
+
+      <div class="arch-layer">
+        <div class="arch-layer-label">Backend Services · RAG &amp; Data Layer</div>
+        <div class="arch-services">
+          <div class="arch-service">Vector Store<br /><span style="color: #3a6050;">Embeddings</span></div>
+          <div class="arch-service">Knowledge Base<br /><span style="color: #3a6050;">Structured MD</span></div>
+          <div class="arch-service">Veeva CRM<br /><span style="color: #3a6050;">Source Data</span></div>
+          <div class="arch-service">Claude API<br /><span style="color: #3a6050;">LLM Layer</span></div>
+          <div class="arch-service">Audit Log<br /><span style="color: #3a6050;">Compliance</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section class="experience" id="experience">
+    <div class="section-label">Experience</div>
+    <h2 class="section-title">15 years of<br /><em>building things.</em></h2>
+    <div class="exp-list">
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-dates">Jan 2023 – Present</div>
+          <div class="exp-company">Genentech</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-title">Principal Trainer, Digital Education &amp; Enablement</div>
+          <p class="exp-desc">Owns the systems and tools learning strategy for all of CMG. Product owner for AI-powered learning coach. Interim Learning Business Partner for Marketing. Leads cross-functional teams from concept to production.</p>
+        </div>
+      </div>
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-dates">Oct 2019 – Jan 2023</div>
+          <div class="exp-company">Genentech</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-title">Senior Digital Learning Lead</div>
+          <p class="exp-desc">Main point of contact for Therapeutic Area trainers on digital learning deployment. Managed end-to-end vendor and IT partnerships. Built onboarding applications with role-specific curricula.</p>
+        </div>
+      </div>
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-dates">Dec 2016 – Mar 2019</div>
+          <div class="exp-company">ZS Pharma / AstraZeneca</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-title">IT Business Partner, Commercial</div>
+          <p class="exp-desc">Owned IT relationship with Renal Commercial organization. Managed Veeva CRM, Veeva Vault, field reporting, and executive dashboards. Coordinated with IT Security, Mobility, and Identity Management.</p>
+        </div>
+      </div>
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-dates">Oct 2010 – Dec 2016</div>
+          <div class="exp-company">Gilead Sciences</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-title">Associate Manager, Learning Technologies</div>
+          <p class="exp-desc">Managed development and delivery of CRM training for all US field employees. Customized Veeva Vault for training materials approval. Contributed to the Commercial technology roadmap.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact" id="contact">
+    <div class="section-label">Get In Touch</div>
+    <h2 class="contact-title">Let's build<br /><em>something.</em></h2>
+    <p>I'm currently exploring new opportunities at the intersection of AI, learning systems, and scale. If that sounds like something you're working on, I'd love to connect. Bonus points if you appreciate a good anime reference.</p>
+    <div class="contact-links">
+      <a href="/cdn-cgi/l/email-protection#e39a8c9691cd868e828a8fa3848e828a8fcd808c8e" class="btn btn-primary">Send an Email</a>
+      <a href="https://linkedin.com" target="_blank" class="btn btn-outline">LinkedIn</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>© 2026 Jill</span>
+    <span>Built with matcha, determination, and chaotic good energy 🐱 · South San Francisco, CA</span>
+  </footer>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.a
